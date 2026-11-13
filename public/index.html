@@ -4,34 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>BulkBite • Zero Delivery Fee Group Ordering</title>
-  
-  <!-- PWA & Mobile Install Meta Tags -->
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="BulkBite" />
-  <meta name="theme-color" content="#4f46e5" />
-  <link rel="apple-touch-icon" href="/icon.svg" />
-  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
-
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍔</text></svg>" />
 </head>
 <body data-theme="light">
-
-  <!-- Live System Announcement Ticker (Broadcasted by Founder) -->
-  <div id="liveAnnouncementBar" class="announcement-bar" style="display: none;">
-    <div class="announcement-content">
-      <span class="announcement-tag">📢 Live Notice</span>
-      <span id="announcementText">Welcome to BulkBite! Group orders hit ₹200 for ₹0 delivery charges!</span>
-    </div>
-    <button onclick="dismissAnnouncement()" style="background: none; border: none; color: white; cursor: pointer; font-size: 14px; opacity: 0.8;">✕</button>
-  </div>
 
   <!-- Main Sticky App Header -->
   <header class="app-header">
     <div class="container header-content">
       <div class="logo-area" onclick="location.reload()">
-        <img src="/icon.svg" class="logo-icon" style="padding: 2px;" alt="BulkBite Logo" />
+        <div class="logo-icon">🍔</div>
         <div>
           <div class="logo-title">BulkBite</div>
           <div class="founder-tag">Founder: KEDAR PATIL</div>
@@ -40,16 +22,6 @@
       </div>
 
       <div class="header-actions">
-        <!-- Founder Control Panel Pill (Visible to Founder Kedar Patil) -->
-        <button id="founderHQBtn" class="founder-hq-btn" onclick="openAdminModal()" style="display: none;" title="Founder Super-Admin Control Panel">
-          <span>👑</span> Founder HQ
-        </button>
-
-        <!-- Helpline & Support Button -->
-        <button class="helpline-btn" onclick="openHelplineModal()" title="Helpline & Support">
-          <span>📞</span> Helpline
-        </button>
-
         <!-- Audio Notification Chime Toggle -->
         <button id="soundToggleBtn" class="icon-btn" title="Toggle Sound Chimes">🔊</button>
 
@@ -65,7 +37,7 @@
           <div id="notifDropdownList" class="dropdown-menu" style="width: 320px; right: 0;"></div>
         </div>
 
-        <!-- Student Account Area -->
+        <!-- Student Account Area (One student, one account) -->
         <div id="authSection" style="position: relative;">
           <!-- Logged Out State -->
           <div id="loggedOutButtons" style="display: flex; gap: 8px;">
@@ -87,19 +59,15 @@
             </button>
 
             <!-- Personal Account Dropdown -->
-            <div id="accountDropdownMenu" class="dropdown-menu" style="width: 260px;">
+            <div id="accountDropdownMenu" class="dropdown-menu" style="width: 250px;">
               <div style="padding: 10px 14px 6px; border-bottom: 1px solid var(--border);">
                 <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Logged In Account</div>
                 <div id="menuFullName" style="font-weight: 800; font-size: 14px; margin-top: 2px;">Rahul Sharma</div>
                 <div id="menuRoomInfo" style="font-size: 12px; color: var(--text-muted);">Room 304 • Hostel 3</div>
-                <div id="menuCollegeInfo" style="font-size: 11px; color: var(--primary); font-weight: 700; margin-top: 2px;">🏫 Campus 1</div>
                 <div id="menuPhoneInfo" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">📞 9876543210</div>
               </div>
               <div class="dropdown-item" onclick="openProfileModal()">
                 <span>👤</span> My Profile & UPI Details
-              </div>
-              <div id="menuFounderItem" class="dropdown-item" onclick="openAdminModal()" style="display:none; color: #f59e0b; font-weight: 800;">
-                <span>👑</span> Founder Control Panel
               </div>
               <div class="dropdown-divider"></div>
               <div class="dropdown-item" onclick="handleLogout()" style="color: var(--danger); font-weight: 700;">
@@ -115,43 +83,6 @@
   <!-- Main Container -->
   <main class="container">
 
-    <!-- Campus Community Bar & Selector -->
-    <section class="community-bar">
-      <div class="community-selector-wrap">
-        <span style="font-size: 16px;">🏫</span>
-        <div>
-          <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">College Community</div>
-          <select id="collegeCommunitySelect" class="community-select" onchange="handleCollegeCommunityChange()">
-            <option value="all">🌍 All College Communities</option>
-            <!-- Populated dynamically via /api/colleges -->
-          </select>
-        </div>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span id="activeCollegeBadge" class="college-badge">
-          <span>🏛️</span> Active Campus
-        </span>
-        <button class="btn-secondary" onclick="openHelplineModal()" style="padding: 5px 10px; font-size: 11px;">
-          📞 Helpline & Rules
-        </button>
-      </div>
-    </section>
-
-    <!-- Mobile App Install Banner -->
-    <section id="pwaInstallBanner" class="pwa-banner">
-      <div class="pwa-banner-left">
-        <img src="/icon.svg" class="pwa-icon-thumb" alt="BulkBite App Icon" />
-        <div>
-          <div class="pwa-banner-title">Install BulkBite App on Mobile 📲</div>
-          <div class="pwa-banner-sub">Add to Home Screen for 1-tap hostel order pooling & live gate alerts!</div>
-        </div>
-      </div>
-      <button class="btn-primary" onclick="triggerPWAInstall()" style="padding: 8px 14px; font-size: 12px; background: #f59e0b; color: #1e1b4b; font-weight: 800;">
-        Install App ⚡
-      </button>
-    </section>
-
     <!-- Hero Banner with Community Savings -->
     <section class="hero-banner">
       <div class="hero-text">
@@ -164,20 +95,16 @@
 
       <div class="hero-metrics">
         <div class="metric-card">
-          <div id="statDeliverySaved" class="metric-number">₹480</div>
+          <div id="statDeliverySaved" class="metric-number">₹320</div>
           <div class="metric-label">Delivery Saved</div>
         </div>
         <div class="metric-card">
-          <div id="statActivePools" class="metric-number">4</div>
+          <div id="statActivePools" class="metric-number">3</div>
           <div class="metric-label">Active Carts</div>
         </div>
         <div class="metric-card">
           <div id="statStudents" class="metric-number">6</div>
-          <div class="metric-label">Students</div>
-        </div>
-        <div class="metric-card">
-          <div id="statColleges" class="metric-number">6</div>
-          <div class="metric-label">Colleges</div>
+          <div class="metric-label">Hostelers</div>
         </div>
       </div>
     </section>
@@ -222,21 +149,14 @@
 
     <!-- App Branding Footer -->
     <footer style="margin-top: 50px; padding: 24px 0 10px; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 13px;">
-      <div style="font-weight: 800; font-size: 16px; color: var(--text-main); margin-bottom: 2px;">
+      <div style="font-weight: 800; font-size: 15px; color: var(--text-main); margin-bottom: 2px;">
         🍔 BulkBite
       </div>
-      <div style="font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;">
+      <div style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
         Founder: KEDAR PATIL
       </div>
-      <div style="font-size: 12px; margin-bottom: 10px;">
-        Multi-College Campus Group Ordering Network • Blinkit • Zepto • Instamart • Zomato
-      </div>
-      <div style="display: flex; gap: 12px; justify-content: center; font-size: 12px;">
-        <a href="javascript:void(0)" onclick="openHelplineModal()" style="color: var(--primary); font-weight: 700; text-decoration: none;">📞 Contact Helpline</a>
-        <span>•</span>
-        <a href="javascript:void(0)" onclick="openHelplineModal()" style="color: var(--text-muted); text-decoration: none;">📜 Community Rules</a>
-        <span>•</span>
-        <a href="javascript:void(0)" onclick="triggerPWAInstall()" style="color: var(--text-muted); text-decoration: none;">📲 Install Mobile App</a>
+      <div style="font-size: 11px; opacity: 0.8;">
+        Zero delivery fee group ordering for hostel students • Blinkit • Zepto • Instamart • Zomato
       </div>
     </footer>
 
@@ -244,184 +164,7 @@
 
   <!-- ==================== MODALS ==================== -->
 
-  <!-- 1. FOUNDER SUPER-ADMIN CONTROL PANEL ("PARENT APP") -->
-  <div id="adminModal" class="modal-overlay">
-    <div class="modal-dialog" style="max-width: 740px;">
-      <div class="modal-header" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color: white;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 22px;">👑</span>
-          <div>
-            <h3 class="modal-title" style="color: white;">BulkBite Founder Control Center</h3>
-            <div style="font-size: 11px; color: #f59e0b; font-weight: 700;">PARENT MANAGEMENT PORTAL • FOUNDER KEDAR PATIL</div>
-          </div>
-        </div>
-        <button class="close-btn" onclick="closeModal('adminModal')" style="color: white;">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <!-- Admin Navigation Tabs -->
-        <div class="admin-tabs">
-          <div class="admin-tab active" onclick="switchAdminTab('usersTab', this)">👥 User Moderation</div>
-          <div class="admin-tab" onclick="switchAdminTab('collegesTab', this)">🏫 College Communities</div>
-          <div class="admin-tab" onclick="switchAdminTab('broadcastTab', this)">📢 Live Broadcast</div>
-          <div class="admin-tab" onclick="switchAdminTab('settingsTab', this)">📞 Helpline Settings</div>
-        </div>
-
-        <!-- Tab 1: User Moderation (Block/Unblock/Delete) -->
-        <div id="usersTab" class="admin-panel active">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
-              Moderate students across all campuses. Block rule-breakers or remove inactive accounts.
-            </p>
-            <button class="btn-secondary" onclick="loadAdminUsers()" style="padding: 4px 10px; font-size: 11px;">
-              🔄 Refresh List
-            </button>
-          </div>
-
-          <div id="adminUserList" style="max-height: 380px; overflow-y: auto;">
-            <!-- Rendered dynamically -->
-          </div>
-        </div>
-
-        <!-- Tab 2: College Communities Manager -->
-        <div id="collegesTab" class="admin-panel">
-          <div style="background: var(--bg); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 16px;">
-            <h4 style="font-size: 13px; font-weight: 800; margin-bottom: 10px; color: var(--primary);">
-              ＋ Launch New College Community / Group
-            </h4>
-            <form id="createCollegeForm" onsubmit="handleCreateCollegeSubmit(event)">
-              <div class="form-row">
-                <div class="form-group" style="margin-bottom: 8px;">
-                  <label class="form-label" style="font-size: 11px;">College Full Name *</label>
-                  <input type="text" id="newCollegeName" class="form-input" placeholder="e.g. SRM University, Chennai" required />
-                </div>
-                <div class="form-group" style="margin-bottom: 8px;">
-                  <label class="form-label" style="font-size: 11px;">Short Code *</label>
-                  <input type="text" id="newCollegeCode" class="form-input" placeholder="e.g. SRM" required />
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group" style="margin-bottom: 8px;">
-                  <input type="text" id="newCollegeCity" class="form-input" placeholder="City (e.g. Chennai)" />
-                </div>
-                <div class="form-group" style="margin-bottom: 8px;">
-                  <input type="text" id="newCollegeState" class="form-input" placeholder="State (e.g. Tamil Nadu)" />
-                </div>
-              </div>
-              <button type="submit" class="btn-primary" style="font-size: 12px; padding: 7px 16px; margin-top: 6px;">
-                Launch College Community 🚀
-              </button>
-            </form>
-          </div>
-
-          <h4 style="font-size: 13px; font-weight: 800; margin-bottom: 10px;">Active Campus Communities</h4>
-          <div id="adminCollegeList" style="max-height: 260px; overflow-y: auto;">
-            <!-- Rendered dynamically -->
-          </div>
-        </div>
-
-        <!-- Tab 3: Live Broadcast (Instant Network Notification) -->
-        <div id="broadcastTab" class="admin-panel">
-          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-            Send an instant announcement that pops up on every student's phone across all college communities in seconds!
-          </p>
-          <form onsubmit="handleGlobalBroadcastSubmit(event)">
-            <div class="form-group">
-              <label class="form-label">Broadcast Title</label>
-              <input type="text" id="broadcastTitleInput" class="form-input" value="📢 Announcement from Founder Kedar Patil" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Message / Rule Notice *</label>
-              <textarea id="broadcastMessageInput" class="form-textarea" rows="3" placeholder="e.g. Please be at the gate on time for Blinkit orders. Late pickups delay everyone." required></textarea>
-            </div>
-            <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-              ⚡ Push Instant Broadcast to All Students
-            </button>
-          </form>
-        </div>
-
-        <!-- Tab 4: Helpline & Settings -->
-        <div id="settingsTab" class="admin-panel">
-          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-            Update official helpline contact number, support email, and platform rules. Changes take effect instantly across all campuses.
-          </p>
-          <form onsubmit="handleUpdateSettingsSubmit(event)">
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Helpline Phone Number *</label>
-                <input type="text" id="settingPhoneInput" class="form-input" value="+91 8390461240" required />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Support Email *</label>
-                <input type="email" id="settingEmailInput" class="form-input" value="support@bulkbite.in" required />
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Live Top Banner Ticker Message</label>
-              <input type="text" id="settingAnnouncementInput" class="form-input" placeholder="e.g. Free delivery enabled across all hostels!" />
-            </div>
-            <button type="submit" class="btn-primary">
-              💾 Save Settings Instantly
-            </button>
-          </form>
-        </div>
-
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" onclick="closeModal('adminModal')">Close Founder Panel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. HELPLINE & RULES MODAL -->
-  <div id="helplineModal" class="modal-overlay">
-    <div class="modal-dialog" style="max-width: 440px;">
-      <div class="modal-header">
-        <h3 class="modal-title">BulkBite Helpline & Support</h3>
-        <button class="close-btn" onclick="closeModal('helplineModal')">✕</button>
-      </div>
-      <div class="modal-body">
-        <div style="text-align: center; margin-bottom: 16px;">
-          <div style="font-size: 32px; margin-bottom: 4px;">📞</div>
-          <h4 style="font-size: 16px; font-weight: 800;">We're Here to Help You</h4>
-          <p style="font-size: 12px; color: var(--text-muted);">
-            Founder: <strong>KEDAR PATIL</strong> • Official Support
-          </p>
-        </div>
-
-        <div style="background: var(--bg); border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 13px; color: var(--text-muted);">📞 Helpline Phone:</span>
-            <a id="helplinePhoneLink" href="tel:+918390461240" style="font-weight: 800; color: var(--primary); text-decoration: none;">+91 8390461240</a>
-          </div>
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 13px; color: var(--text-muted);">💬 WhatsApp Helpline:</span>
-            <a id="helplineWhatsAppBtn" href="https://wa.me/918390461240?text=Hi%20BulkBite%20Helpline" target="_blank" class="btn-primary" style="padding: 3px 9px; font-size: 11px; background: #10b981;">
-              Open WhatsApp
-            </a>
-          </div>
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 13px; color: var(--text-muted);">✉️ Support Email:</span>
-            <a id="helplineEmailLink" href="mailto:support@bulkbite.in" style="font-weight: 700; color: var(--primary); text-decoration: none;">support@bulkbite.in</a>
-          </div>
-        </div>
-
-        <div style="background: var(--warning-light); border: 1px solid var(--warning); border-radius: var(--radius-md); padding: 12px; color: #78350f; font-size: 12px;">
-          <strong>📜 Community Rules:</strong>
-          <ul style="margin-left: 18px; margin-top: 4px;">
-            <li>Meet the host promptly at the gate when the delivery alert arrives.</li>
-            <li>Settle your UPI payment immediately upon collecting your items.</li>
-            <li>Users violating hostel guidelines or defaulting on payment will be suspended by the founder.</li>
-          </ul>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" onclick="closeModal('helplineModal')">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. LOGIN MODAL -->
+  <!-- 1. LOGIN MODAL -->
   <div id="loginModal" class="modal-overlay">
     <div class="modal-dialog" style="max-width: 420px;">
       <div class="modal-header">
@@ -431,7 +174,7 @@
       <form id="loginForm">
         <div class="modal-body">
           <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-            Log into your personal account to host group carts and add items.
+            Log into your personal hostel account to host group carts and add items.
           </p>
 
           <div class="form-group">
@@ -444,15 +187,15 @@
             <input type="password" id="loginPasswordInput" class="form-input" placeholder="Your account password" required />
           </div>
 
-          <!-- Quick Fill for Demo & Founder Testing -->
+          <!-- Quick Fill for Demo Testing -->
           <div style="background: var(--bg); padding: 10px 12px; border-radius: var(--radius-md); border: 1px dashed var(--border); margin-top: 12px;">
             <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
-              QUICK TEST LOGINS (Password: <code style="color:var(--primary);">hostel123</code>)
+              DEMO HOSTEL STUDENTS (Password: <code style="color:var(--primary);">hostel123</code>)
             </div>
             <div class="preset-chips">
-              <span class="preset-chip" style="background: #fef3c7; color: #b45309; border-color: #f59e0b; font-weight: 800;" onclick="quickFillLogin('8390461240', 'hostel123')">👑 Founder Kedar Patil</span>
               <span class="preset-chip" onclick="quickFillLogin('9876543210', 'hostel123')">Rahul (Rm 304)</span>
               <span class="preset-chip" onclick="quickFillLogin('9811223344', 'hostel123')">Aman (Rm 210)</span>
+              <span class="preset-chip" onclick="quickFillLogin('9822334455', 'hostel123')">Priya (Rm 102)</span>
             </div>
           </div>
 
@@ -468,7 +211,7 @@
     </div>
   </div>
 
-  <!-- 4. SIGN UP / REGISTER MODAL -->
+  <!-- 2. SIGN UP / REGISTER MODAL -->
   <div id="registerModal" class="modal-overlay">
     <div class="modal-dialog" style="max-width: 480px;">
       <div class="modal-header">
@@ -478,15 +221,8 @@
       <form id="registerForm">
         <div class="modal-body">
           <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-            One account per student. Choose your college community so you can pool with your campus peers!
+            One account per student. Your room number and phone will be linked to your orders.
           </p>
-
-          <div class="form-group">
-            <label class="form-label">College Community *</label>
-            <select id="regCollegeSelect" class="form-select" required>
-              <!-- Populated dynamically -->
-            </select>
-          </div>
 
           <div class="form-group">
             <label class="form-label">Full Name *</label>
@@ -500,7 +236,14 @@
             </div>
             <div class="form-group">
               <label class="form-label">Hostel / Block *</label>
-              <input type="text" id="regHostelInput" class="form-input" placeholder="e.g. Hostel 3 / Block B" required />
+              <select id="regHostelInput" class="form-select" required>
+                <option value="Hostel 3 (Boys)">Hostel 3 (Boys)</option>
+                <option value="Hostel 4 (Boys)">Hostel 4 (Boys)</option>
+                <option value="Hostel 1 (Girls)">Hostel 1 (Girls)</option>
+                <option value="Hostel 2 (Girls)">Hostel 2 (Girls)</option>
+                <option value="Block A">Block A</option>
+                <option value="Block B">Block B</option>
+              </select>
             </div>
           </div>
 
@@ -518,6 +261,7 @@
           <div class="form-group">
             <label class="form-label">Your UPI ID (For collecting payment when you host)</label>
             <input type="text" id="regUpiInput" class="form-input" placeholder="e.g. name@oksbi / name@paytm" />
+            <div class="form-helper">Other students will pay to this UPI ID when you host carts</div>
           </div>
 
           <div style="text-align: center; margin-top: 14px; font-size: 13px; color: var(--text-muted);">
@@ -526,13 +270,13 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-secondary" onclick="closeModal('registerModal')">Cancel</button>
-          <button type="submit" class="btn-primary">Create My Account 🚀</button>
+          <button type="submit" class="btn-primary">Create My Account & Login 🚀</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- 5. MY PROFILE MODAL -->
+  <!-- 3. MY PROFILE MODAL -->
   <div id="profileModal" class="modal-overlay">
     <div class="modal-dialog" style="max-width: 420px;">
       <div class="modal-header">
@@ -547,10 +291,6 @@
         </div>
 
         <div style="background: var(--bg); border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted);">College Campus:</span>
-            <strong id="profileCollege">Main Engineering Campus</strong>
-          </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Hostel Block:</span>
             <strong id="profileBlock">Hostel 3 (Boys)</strong>
@@ -572,7 +312,7 @@
     </div>
   </div>
 
-  <!-- 6. HOST AN ORDER POOL MODAL -->
+  <!-- 4. HOST AN ORDER POOL MODAL -->
   <div id="createPoolModal" class="modal-overlay">
     <div class="modal-dialog">
       <div class="modal-header">
@@ -582,15 +322,8 @@
       <form id="createPoolForm">
         <div class="modal-body">
           <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-            Start a cart pool for your campus community. Once other students add items and cart reaches the free delivery limit, you place the order and meet at the gate!
+            Start a cart pool for your hostel. Once other students add items and cart reaches the free delivery limit, you place the order and meet at the gate!
           </p>
-
-          <div class="form-group">
-            <label class="form-label">College Community *</label>
-            <select id="poolCollegeSelect" class="form-select" required>
-              <!-- Dynamic -->
-            </select>
-          </div>
 
           <div class="form-row">
             <div class="form-group">
@@ -607,6 +340,7 @@
             <div class="form-group">
               <label class="form-label">Free Delivery Target (₹) *</label>
               <input type="number" id="poolTargetInput" class="form-input" value="200" min="50" step="10" required />
+              <div class="form-helper">Blinkit/Zepto free delivery is usually ₹199-₹200</div>
             </div>
           </div>
 
@@ -628,7 +362,7 @@
             </div>
             <div class="form-group">
               <label class="form-label">Pickup Gate Spot *</label>
-              <input type="text" id="poolGateInput" class="form-input" value="Main Hostel Gate" required />
+              <input type="text" id="poolGateInput" class="form-input" value="Main Hostel Gate (Near Guard Room)" required />
               <div class="preset-chips">
                 <span class="preset-chip" onclick="document.getElementById('poolGateInput').value='Main Hostel Gate'">Main Gate</span>
                 <span class="preset-chip" onclick="document.getElementById('poolGateInput').value='Gate 2 (Near Nescafe)'">Gate 2 Nescafe</span>
@@ -637,7 +371,7 @@
             </div>
           </div>
 
-          <!-- Initial Host Item -->
+          <!-- Initial Host Item to kickstart cart -->
           <div style="background: var(--bg); padding: 14px; border-radius: var(--radius-md); border: 1px dashed var(--border); margin-top: 10px;">
             <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">
               🛒 Your Initial Item (What are you ordering?)
@@ -666,7 +400,7 @@
     </div>
   </div>
 
-  <!-- 7. ADD ITEM TO POOL MODAL -->
+  <!-- 5. ADD ITEM TO POOL MODAL -->
   <div id="addItemModal" class="modal-overlay">
     <div class="modal-dialog">
       <div class="modal-header">
@@ -691,7 +425,7 @@
 
           <div class="form-group">
             <label class="form-label">Product Name *</label>
-            <input type="text" id="itemNameInput" class="form-input" placeholder="e.g. Kurkure Solid Masti / Red Bull" required />
+            <input type="text" id="itemNameInput" class="form-input" placeholder="e.g. Kurkure Solid Masti / Red Bull / Bread" required />
           </div>
 
           <div class="form-row">
@@ -708,6 +442,7 @@
           <div class="form-group">
             <label class="form-label">Product Link (Optional)</label>
             <input type="url" id="itemLinkInput" class="form-input" placeholder="Paste link from Blinkit / Zepto / Swiggy app" />
+            <div class="form-helper">Helps the host pick the exact product on the app</div>
           </div>
 
           <div class="form-group">
@@ -717,7 +452,7 @@
 
           <div class="form-group">
             <label class="form-label">Special Preferences / Instructions</label>
-            <input type="text" id="itemNotesInput" class="form-input" placeholder="e.g. Chilled only, Buy 1 Get 1 if available" />
+            <input type="text" id="itemNotesInput" class="form-input" placeholder="e.g. Chilled only, Green packet, Buy 1 Get 1 if available" />
           </div>
         </div>
         <div class="modal-footer">
@@ -728,7 +463,7 @@
     </div>
   </div>
 
-  <!-- 8. POOL DETAIL & GATE MEETUP MODAL -->
+  <!-- 6. POOL DETAIL & GATE MEETUP MODAL -->
   <div id="poolDetailModal" class="modal-overlay">
     <div class="modal-dialog" style="max-width: 680px;">
       <div class="modal-header">
@@ -736,7 +471,7 @@
         <button class="close-btn" onclick="closeModal('poolDetailModal')">✕</button>
       </div>
       <div class="modal-body" id="poolDetailBody">
-        <!-- Rendered dynamically -->
+        <!-- Rendered dynamically by app.js -->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-secondary" onclick="closeModal('poolDetailModal')">Close</button>
@@ -744,7 +479,7 @@
     </div>
   </div>
 
-  <!-- 9. UPI QR PAYMENT MODAL -->
+  <!-- 7. UPI QR PAYMENT MODAL -->
   <div id="upiQRModal" class="modal-overlay">
     <div class="modal-dialog" style="max-width: 420px;">
       <div class="modal-header">
@@ -757,7 +492,9 @@
         </div>
         <div class="upi-id-pill" id="qrUpiId">rahul304@oksbi</div>
 
-        <div class="qr-box" id="qrCodeContainer"></div>
+        <div class="qr-box" id="qrCodeContainer">
+          <!-- Offline SVG QR Code rendered here -->
+        </div>
 
         <div style="font-size: 26px; font-weight: 800; color: var(--primary); margin-bottom: 12px;" id="qrAmount">
           ₹40
