@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#9333ea"/>
+    </linearGradient>
+    <linearGradient id="burger-bun" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="patty" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#78350f"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+    <linearGradient id="lightning" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- App Icon Background Container with rounded squircle -->
+  <rect width="512" height="512" rx="128" fill="url(#bg-grad)" />
+
+  <!-- Subtle Inner Border Highlight -->
+  <rect x="8" y="8" width="496" height="496" rx="120" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="6" />
+
+  <!-- Shopping Basket / Cloche outline in background -->
+  <path d="M140 380 Q 256 420 372 380" stroke="rgba(255,255,255,0.25)" stroke-width="12" stroke-linecap="round" fill="none" />
+
+  <!-- Top Burger Bun -->
+  <path d="M156 220 Q 256 120 356 220 Z" fill="url(#burger-bun)" filter="url(#glow)" />
+  <!-- Sesame seeds -->
+  <ellipse cx="220" cy="180" rx="8" ry="4" fill="#fef3c7" transform="rotate(-15 220 180)" />
+  <ellipse cx="260" cy="165" rx="8" ry="4" fill="#fef3c7" />
+  <ellipse cx="300" cy="185" rx="8" ry="4" fill="#fef3c7" transform="rotate(20 300 185)" />
+
+  <!-- Fresh Lettuce wave -->
+  <path d="M145 235 Q 170 215 195 235 Q 225 215 256 235 Q 285 215 315 235 Q 345 215 367 235 L 360 250 Q 256 265 152 250 Z" fill="#10b981" />
+
+  <!-- Patty -->
+  <rect x="150" y="258" width="212" height="32" rx="16" fill="url(#patty)" />
+
+  <!-- Cheese Melt slice -->
+  <path d="M145 264 L 367 264 L 350 286 L 270 304 L 180 286 Z" fill="#fbbf24" opacity="0.9" />
+
+  <!-- Bottom Burger Bun -->
+  <rect x="160" y="302" width="192" height="38" rx="19" fill="url(#burger-bun)" />
+
+  <!-- Fast Delivery Lightning Bolt Badge -->
+  <g transform="translate(320, 260) scale(1.1)" filter="url(#glow)">
+    <circle cx="36" cy="36" r="44" fill="#1e1b4b" stroke="#f59e0b" stroke-width="6" />
+    <path d="M38 6 L 16 38 L 32 38 L 26 66 L 56 28 L 40 28 Z" fill="url(#lightning)" />
+  </g>
+
+  <!-- BulkBite Sub-Badge Tag -->
+  <rect x="136" y="380" width="240" height="48" rx="24" fill="#0f172a" stroke="rgba(255,255,255,0.25)" stroke-width="3" />
+  <text x="256" y="411" font-family="-apple-system, system-ui, sans-serif" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">
+    BULKBITE
+  </text>
+</svg>
