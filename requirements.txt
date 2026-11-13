@@ -1,0 +1,2 @@
+# Built with Python standard library (http.server, sqlite3, json, hashlib, secrets)
+# Zero external dependencies needed!
