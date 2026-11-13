@@ -1,16 +1,13 @@
 /**
  * BulkBite - Zero Delivery Fee Group Ordering Platform
  * Founder: KEDAR PATIL
- * Multi-Campus Communities & Founder Parent Control System
+ * Secure Individual Student Authentication & Group Cart Management
  */
 
 // Application State
 const state = {
   currentUser: null,
   token: localStorage.getItem('hostel_token') || '',
-  colleges: [],
-  selectedCollegeId: 'all',
-  settings: {},
   pools: [],
   currentPoolDetail: null,
   activeFilter: 'all',
@@ -19,8 +16,7 @@ const state = {
   notifications: [],
   lastNotifId: 0,
   soundEnabled: true,
-  audioCtx: null,
-  deferredPrompt: null
+  audioCtx: null
 };
 
 // Web Audio API Ding Chime
@@ -42,6 +38,7 @@ function playChime(isAlert = false) {
     const now = ctx.currentTime;
 
     if (isAlert) {
+      // Urgent Gate Alert Sound (2-tone beep)
       osc.frequency.setValueAtTime(880, now);
       osc.frequency.setValueAtTime(1174, now + 0.12);
       gain.gain.setValueAtTime(0.3, now);
@@ -51,6 +48,7 @@ function playChime(isAlert = false) {
       osc.start(now);
       osc.stop(now + 0.5);
     } else {
+      // Soft gentle chime
       osc.frequency.setValueAtTime(587.33, now);
       osc.frequency.setValueAtTime(880, now + 0.08);
       gain.gain.setValueAtTime(0.2, now);
@@ -60,7 +58,9 @@ function playChime(isAlert = false) {
       osc.start(now);
       osc.stop(now + 0.4);
     }
-  } catch (e) {}
+  } catch (e) {
+    console.log("Audio play error", e);
+  }
 }
 
 // Minimal pure-JS QR code generator for UPI payment
@@ -163,8 +163,6 @@ async function apiFetch(endpoint, options = {}) {
 // ------------------ APP INITIALIZATION ------------------ //
 
 async function initApp() {
-  await loadSettings();
-  await loadColleges();
   await verifyAuthentication();
   await loadStats();
   await loadPools();
@@ -175,115 +173,12 @@ async function initApp() {
     loadPools(false);
     checkNotifications(false);
     loadStats();
-    loadSettings();
     if (state.currentPoolDetail) {
       refreshActivePoolDetail(state.currentPoolDetail.id);
     }
   }, 4500);
 
   setupEventListeners();
-  setupPWA();
-}
-
-// ------------------ SETTINGS & HELPLINE ------------------ //
-
-async function loadSettings() {
-  try {
-    const settings = await apiFetch('/api/settings');
-    state.settings = settings;
-
-    // Update Live Announcement Bar
-    const bar = document.getElementById('liveAnnouncementBar');
-    const textEl = document.getElementById('announcementText');
-    if (bar && textEl && settings.live_announcement && settings.announcement_active === '1') {
-      textEl.textContent = settings.live_announcement;
-      bar.style.display = 'flex';
-    }
-
-    // Update Helpline Links
-    const phoneLink = document.getElementById('helplinePhoneLink');
-    const emailLink = document.getElementById('helplineEmailLink');
-    const waBtn = document.getElementById('helplineWhatsAppBtn');
-    const p = settings.helpline_phone || '+91 8390461240';
-    const cleanPhone = p.replace(/[^0-9]/g, '');
-
-    if (phoneLink) {
-      phoneLink.textContent = p;
-      phoneLink.href = `tel:${p}`;
-    }
-    if (emailLink) {
-      emailLink.textContent = settings.helpline_email || 'support@bulkbite.in';
-      emailLink.href = `mailto:${settings.helpline_email || 'support@bulkbite.in'}`;
-    }
-    if (waBtn) {
-      waBtn.href = `https://wa.me/${cleanPhone}?text=Hi%20BulkBite%20Helpline`;
-    }
-  } catch (e) {}
-}
-
-function dismissAnnouncement() {
-  const bar = document.getElementById('liveAnnouncementBar');
-  if (bar) bar.style.display = 'none';
-}
-
-function openHelplineModal() {
-  loadSettings();
-  document.getElementById('helplineModal').classList.add('active');
-}
-
-// ------------------ COLLEGE COMMUNITIES ------------------ //
-
-async function loadColleges() {
-  try {
-    const colleges = await apiFetch('/api/colleges');
-    state.colleges = colleges;
-
-    // Populate dropdowns
-    const mainSelect = document.getElementById('collegeCommunitySelect');
-    const regSelect = document.getElementById('regCollegeSelect');
-    const poolSelect = document.getElementById('poolCollegeSelect');
-
-    let mainOptions = '<option value="all">🌍 All College Communities</option>';
-    let formOptions = '';
-
-    colleges.forEach(c => {
-      const label = `${c.icon || '🎓'} ${c.name} (${c.code})`;
-      mainOptions += `<option value="${c.id}">${label}</option>`;
-      formOptions += `<option value="${c.id}">${label}</option>`;
-    });
-
-    if (mainSelect) mainSelect.innerHTML = mainOptions;
-    if (regSelect) regSelect.innerHTML = formOptions;
-    if (poolSelect) poolSelect.innerHTML = formOptions;
-
-    // Update Active College Badge
-    updateCollegeBadge();
-  } catch (e) {
-    console.error("Failed to load colleges", e);
-  }
-}
-
-function handleCollegeCommunityChange() {
-  const select = document.getElementById('collegeCommunitySelect');
-  if (select) {
-    state.selectedCollegeId = select.value;
-    updateCollegeBadge();
-    loadPools();
-  }
-}
-
-function updateCollegeBadge() {
-  const badge = document.getElementById('activeCollegeBadge');
-  if (!badge) return;
-
-  if (state.selectedCollegeId === 'all') {
-    badge.innerHTML = `<span>🌍</span> All Campuses`;
-  } else {
-    const c = state.colleges.find(col => col.id == state.selectedCollegeId);
-    if (c) {
-      badge.innerHTML = `<span>${c.icon || '🎓'}</span> ${c.code}`;
-    }
-  }
 }
 
 // ------------------ AUTHENTICATION (ONE STUDENT ONE ACCOUNT) ------------------ //
@@ -300,16 +195,6 @@ async function verifyAuthentication() {
     if (res.authenticated && res.user) {
       state.currentUser = res.user;
       updateAuthUI(res.user);
-
-      // Auto-set user's college if on 'all'
-      if (res.user.college_id && state.selectedCollegeId === 'all') {
-        const select = document.getElementById('collegeCommunitySelect');
-        if (select) {
-          select.value = res.user.college_id;
-          state.selectedCollegeId = res.user.college_id;
-          updateCollegeBadge();
-        }
-      }
     } else {
       handleLogoutLocal();
     }
@@ -321,25 +206,16 @@ async function verifyAuthentication() {
 function updateAuthUI(user) {
   const loggedOutDiv = document.getElementById('loggedOutButtons');
   const loggedInDiv = document.getElementById('loggedInAccount');
-  const founderBtn = document.getElementById('founderHQBtn');
-  const menuFounderItem = document.getElementById('menuFounderItem');
 
   if (!user) {
     if (loggedOutDiv) loggedOutDiv.style.display = 'flex';
     if (loggedInDiv) loggedInDiv.style.display = 'none';
-    if (founderBtn) founderBtn.style.display = 'none';
-    if (menuFounderItem) menuFounderItem.style.display = 'none';
     state.currentUser = null;
     return;
   }
 
   if (loggedOutDiv) loggedOutDiv.style.display = 'none';
   if (loggedInDiv) loggedInDiv.style.display = 'block';
-
-  // Founder Controls Visibility (Unlocked for Founder Kedar Patil)
-  const isFounder = user.role === 'founder';
-  if (founderBtn) founderBtn.style.display = isFounder ? 'flex' : 'none';
-  if (menuFounderItem) menuFounderItem.style.display = isFounder ? 'flex' : 'none';
 
   // Set User details in personal account pill
   const avatarEl = document.getElementById('userAvatarBadge');
@@ -348,23 +224,17 @@ function updateAuthUI(user) {
 
   if (avatarEl) {
     avatarEl.textContent = user.name.charAt(0).toUpperCase();
-    avatarEl.style.backgroundColor = isFounder ? '#F59E0B' : (user.avatar_color || '#4F46E5');
+    avatarEl.style.backgroundColor = user.avatar_color || '#4F46E5';
   }
   if (nameEl) nameEl.textContent = user.name.split(' ')[0];
-  if (roomEl) {
-    roomEl.textContent = isFounder ? 'Founder' : user.room_number;
-    if (isFounder) roomEl.style.background = '#fef3c7';
-    if (isFounder) roomEl.style.color = '#b45309';
-  }
+  if (roomEl) roomEl.textContent = user.room_number;
 
   // Dropdown card details
   const menuName = document.getElementById('menuFullName');
   const menuRoom = document.getElementById('menuRoomInfo');
-  const menuCollege = document.getElementById('menuCollegeInfo');
   const menuPhone = document.getElementById('menuPhoneInfo');
   if (menuName) menuName.textContent = user.name;
   if (menuRoom) menuRoom.textContent = `${user.room_number} • ${user.hostel_block}`;
-  if (menuCollege) menuCollege.textContent = `🏫 ${user.college_name || 'Campus Community'}`;
   if (menuPhone) menuPhone.textContent = `📞 ${user.phone}`;
 }
 
@@ -401,6 +271,7 @@ async function handleLoginSubmit(e) {
   let res = null;
   let lastError = null;
 
+  // Try endpoints with fallback
   for (const endpoint of ['/api/auth/login', '/api/login', '/auth/login']) {
     try {
       res = await apiFetch(endpoint, {
@@ -411,7 +282,7 @@ async function handleLoginSubmit(e) {
     } catch (err) {
       lastError = err;
       if (!err.message.includes('not found') && !err.message.includes('404')) {
-        break;
+        break; // real credential error, do not retry
       }
     }
   }
@@ -421,16 +292,19 @@ async function handleLoginSubmit(e) {
     state.currentUser = res.user;
     updateAuthUI(res.user);
     closeModal('loginModal');
-    showToast("Logged In Successfully!", `Welcome back, ${res.user.name}!`, "info");
+    showToast("Logged In Successfully!", `Active as ${res.user.name} (${res.user.room_number})`, "info");
     await loadPools();
   } else {
-    showToast("Login Failed", lastError ? lastError.message : "Invalid phone or password", "gate");
+    let msg = lastError ? lastError.message : "Invalid phone number or password";
+    if (msg.toLowerCase().includes('not found')) {
+      msg = "Server restart required! Please stop the running Python server (press Ctrl+C in your PowerShell/terminal) and restart it: 'python server.py'";
+    }
+    showToast("Login Failed", msg, "gate");
   }
 }
 
 async function handleRegisterSubmit(e) {
   e.preventDefault();
-  const collegeId = document.getElementById('regCollegeSelect').value;
   const name = document.getElementById('regNameInput').value.trim();
   const room = document.getElementById('regRoomInput').value.trim();
   const hostel = document.getElementById('regHostelInput').value.trim();
@@ -446,7 +320,6 @@ async function handleRegisterSubmit(e) {
       res = await apiFetch(endpoint, {
         method: 'POST',
         body: JSON.stringify({
-          college_id: collegeId,
           name,
           room_number: room,
           hostel_block: hostel,
@@ -473,7 +346,11 @@ async function handleRegisterSubmit(e) {
     await loadPools();
     await loadStats();
   } else {
-    showToast("Registration Failed", lastError ? lastError.message : "Registration failed", "gate");
+    let msg = lastError ? lastError.message : "Registration failed";
+    if (msg.toLowerCase().includes('not found')) {
+      msg = "Server restart required! Please stop the running Python server (press Ctrl+C in your PowerShell/terminal) and restart it: 'python server.py'";
+    }
+    showToast("Registration Failed", msg, "gate");
   }
 }
 
@@ -501,10 +378,9 @@ function openProfileModal() {
   const u = state.currentUser;
 
   document.getElementById('profileAvatarBig').textContent = u.name.charAt(0).toUpperCase();
-  document.getElementById('profileAvatarBig').style.backgroundColor = u.role === 'founder' ? '#F59E0B' : (u.avatar_color || '#4F46E5');
+  document.getElementById('profileAvatarBig').style.backgroundColor = u.avatar_color || '#4F46E5';
   document.getElementById('profileNameBig').textContent = u.name;
-  document.getElementById('profileRoomBig').textContent = u.role === 'founder' ? 'Founder HQ' : u.room_number;
-  document.getElementById('profileCollege').textContent = u.college_name || 'Main Campus';
+  document.getElementById('profileRoomBig').textContent = u.room_number;
   document.getElementById('profileBlock').textContent = u.hostel_block;
   document.getElementById('profilePhone').textContent = u.phone;
   document.getElementById('profileUpi').textContent = u.upi_id || 'Not set yet';
@@ -524,214 +400,6 @@ function handleHostPoolClick() {
   openCreatePoolModal();
 }
 
-// ------------------ FOUNDER SUPER-ADMIN CONTROL PANEL ("PARENT APP") ------------------ //
-
-function openAdminModal() {
-  if (!state.currentUser || state.currentUser.role !== 'founder') {
-    showToast("Access Denied", "Founder privileges required to open this portal.", "gate");
-    return;
-  }
-  const modal = document.getElementById('adminModal');
-  modal.classList.add('active');
-  loadAdminUsers();
-  loadAdminColleges();
-}
-
-function switchAdminTab(panelId, tabEl) {
-  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
-
-  tabEl.classList.add('active');
-  const panel = document.getElementById(panelId);
-  if (panel) panel.classList.add('active');
-
-  if (panelId === 'usersTab') loadAdminUsers();
-  if (panelId === 'collegesTab') loadAdminColleges();
-}
-
-async function loadAdminUsers() {
-  const container = document.getElementById('adminUserList');
-  if (!container) return;
-  container.innerHTML = '<div style="padding:16px; text-align:center;">Loading students...</div>';
-
-  try {
-    const users = await apiFetch('/api/admin/users');
-    if (users.length === 0) {
-      container.innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted);">No users found.</div>';
-      return;
-    }
-
-    container.innerHTML = users.map(u => {
-      const isBlocked = u.status === 'blocked';
-      const isFounder = u.role === 'founder';
-
-      return `
-        <div class="admin-user-card ${isBlocked ? 'is-blocked' : ''} ${isFounder ? 'is-founder' : ''}">
-          <div>
-            <div style="font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-              ${escapeHtml(u.name)}
-              <span class="status-tag ${isFounder ? 'founder' : (isBlocked ? 'blocked' : 'active')}">
-                ${isFounder ? '👑 Founder' : (isBlocked ? '⛔ Suspended' : '✓ Active')}
-              </span>
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
-              ${escapeHtml(u.room_number)} • ${escapeHtml(u.hostel_block)} • 🏫 ${escapeHtml(u.college_name || 'Campus')}
-            </div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
-              📞 <strong>${u.phone}</strong> ${u.upi_id ? `• UPI: ${u.upi_id}` : ''}
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
-            ${!isFounder ? `
-              <button 
-                class="btn-secondary" 
-                onclick="toggleUserStatus(${u.id}, '${isBlocked ? 'active' : 'blocked'}')"
-                style="padding: 5px 9px; font-size: 11px; ${isBlocked ? 'color: var(--success);' : 'color: var(--danger);'}"
-              >
-                ${isBlocked ? '✅ Unblock' : '⛔ Block'}
-              </button>
-              <button 
-                class="btn-secondary" 
-                onclick="deleteUserPermanently(${u.id})"
-                style="padding: 5px 9px; font-size: 11px; color: var(--danger);"
-                title="Permanently remove user"
-              >
-                🗑️ Delete
-              </button>
-            ` : '<span style="font-size:12px; font-weight:800; color:#f59e0b;">Master Account</span>'}
-          </div>
-        </div>
-      `;
-    }).join('');
-  } catch (err) {
-    container.innerHTML = `<div style="padding:16px; color:var(--danger);">${err.message}</div>`;
-  }
-}
-
-async function toggleUserStatus(userId, newStatus) {
-  try {
-    await apiFetch(`/api/admin/users/${userId}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status: newStatus })
-    });
-    showToast("Status Updated", `Student status set to ${newStatus}`, "info");
-    loadAdminUsers();
-  } catch (e) {
-    showToast("Error", e.message, "gate");
-  }
-}
-
-async function deleteUserPermanently(userId) {
-  if (!confirm("Are you sure you want to permanently delete this student account? This cannot be undone.")) return;
-  try {
-    await apiFetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
-    showToast("User Removed", "Student deleted from BulkBite platform", "info");
-    loadAdminUsers();
-    loadStats();
-  } catch (e) {
-    showToast("Error", e.message, "gate");
-  }
-}
-
-async function loadAdminColleges() {
-  const container = document.getElementById('adminCollegeList');
-  if (!container) return;
-
-  try {
-    const colleges = await apiFetch('/api/colleges');
-    container.innerHTML = colleges.map(c => `
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 8px;">
-        <div>
-          <div style="font-weight: 800; font-size: 13px;">${c.icon || '🎓'} ${escapeHtml(c.name)} <span style="color:var(--primary); font-size:11px;">[${c.code}]</span></div>
-          <div style="font-size: 11px; color: var(--text-muted);">${c.city || ''} ${c.state || ''} • 👥 ${c.student_count || 0} students enrolled</div>
-        </div>
-        ${c.id !== 1 ? `
-          <button onclick="deleteCollegeCommunity(${c.id})" class="btn-secondary" style="padding: 4px 8px; font-size: 11px; color: var(--danger);">
-            ✕ Remove
-          </button>
-        ` : '<span style="font-size:11px; color:var(--text-muted);">Default</span>'}
-      </div>
-    `).join('');
-  } catch (e) {}
-}
-
-async function handleCreateCollegeSubmit(e) {
-  e.preventDefault();
-  const name = document.getElementById('newCollegeName').value.trim();
-  const code = document.getElementById('newCollegeCode').value.trim();
-  const city = document.getElementById('newCollegeCity').value.trim();
-  const stateVal = document.getElementById('newCollegeState').value.trim();
-
-  try {
-    await apiFetch('/api/admin/colleges', {
-      method: 'POST',
-      body: JSON.stringify({ name, code, city, state: stateVal })
-    });
-    showToast("Community Launched!", `Campus community ${name} is live!`, "goal");
-    document.getElementById('createCollegeForm').reset();
-    await loadColleges();
-    loadAdminColleges();
-    loadStats();
-  } catch (err) {
-    showToast("Failed to Create", err.message, "gate");
-  }
-}
-
-async function deleteCollegeCommunity(collegeId) {
-  if (!confirm("Are you sure you want to remove this college community?")) return;
-  try {
-    await apiFetch(`/api/admin/colleges/${collegeId}`, { method: 'DELETE' });
-    showToast("Removed", "College community removed", "info");
-    await loadColleges();
-    loadAdminColleges();
-    loadStats();
-  } catch (e) {
-    showToast("Error", e.message, "gate");
-  }
-}
-
-async function handleGlobalBroadcastSubmit(e) {
-  e.preventDefault();
-  const title = document.getElementById('broadcastTitleInput').value.trim();
-  const message = document.getElementById('broadcastMessageInput').value.trim();
-
-  try {
-    await apiFetch('/api/admin/broadcast', {
-      method: 'POST',
-      body: JSON.stringify({ title, message })
-    });
-    showToast("Broadcast Sent!", "Notice published to all students across all campuses!", "goal");
-    document.getElementById('broadcastMessageInput').value = '';
-    await loadSettings();
-  } catch (err) {
-    showToast("Broadcast Failed", err.message, "gate");
-  }
-}
-
-async function handleUpdateSettingsSubmit(e) {
-  e.preventDefault();
-  const phone = document.getElementById('settingPhoneInput').value.trim();
-  const email = document.getElementById('settingEmailInput').value.trim();
-  const ann = document.getElementById('settingAnnouncementInput').value.trim();
-
-  try {
-    await apiFetch('/api/admin/settings', {
-      method: 'PATCH',
-      body: JSON.stringify({
-        helpline_phone: phone,
-        helpline_email: email,
-        live_announcement: ann,
-        announcement_active: ann ? '1' : '0'
-      })
-    });
-    showToast("Settings Updated!", "Helpline & rules updated instantly across all campuses!", "info");
-    await loadSettings();
-  } catch (err) {
-    showToast("Error", err.message, "gate");
-  }
-}
-
 // ------------------ STATS & POOLS ------------------ //
 
 async function loadStats() {
@@ -740,13 +408,13 @@ async function loadStats() {
     const savedEl = document.getElementById('statDeliverySaved');
     const poolsEl = document.getElementById('statActivePools');
     const studentsEl = document.getElementById('statStudents');
-    const collegesEl = document.getElementById('statColleges');
 
     if (savedEl) savedEl.textContent = `₹${Math.round(stats.total_delivery_saved)}`;
     if (poolsEl) poolsEl.textContent = stats.active_pools;
     if (studentsEl) studentsEl.textContent = stats.total_students;
-    if (collegesEl) collegesEl.textContent = stats.total_colleges || 6;
-  } catch (e) {}
+  } catch (e) {
+    console.error("Failed to load stats", e);
+  }
 }
 
 async function loadPools(showLoading = true) {
@@ -755,10 +423,6 @@ async function loadPools(showLoading = true) {
     if (state.activePlatform !== 'all') {
       url += `&platform=${encodeURIComponent(state.activePlatform)}`;
     }
-    if (state.selectedCollegeId !== 'all') {
-      url += `&college_id=${encodeURIComponent(state.selectedCollegeId)}`;
-    }
-
     const pools = await apiFetch(url);
     state.pools = pools;
     renderPools();
@@ -769,11 +433,7 @@ async function loadPools(showLoading = true) {
 
 async function checkNotifications(isInitial = false) {
   try {
-    let url = '/api/notifications';
-    if (state.selectedCollegeId !== 'all') {
-      url += `?college_id=${state.selectedCollegeId}`;
-    }
-    const notifs = await apiFetch(url);
+    const notifs = await apiFetch('/api/notifications');
     if (!notifs || notifs.length === 0) return;
 
     if (isInitial) {
@@ -791,12 +451,13 @@ async function checkNotifications(isInitial = false) {
 
       newItems.reverse().forEach(n => {
         const isGateAlert = n.type === 'gate_alert';
-        const isBroadcast = n.type === 'admin_broadcast';
-        showToast(n.title, n.message, isGateAlert ? 'gate' : (isBroadcast ? 'goal' : 'info'));
-        playChime(isGateAlert || isBroadcast);
+        showToast(n.title, n.message, isGateAlert ? 'gate' : (n.type === 'target_reached' ? 'goal' : 'info'));
+        playChime(isGateAlert);
       });
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("Failed to fetch notifications", e);
+  }
 }
 
 // ------------------ RENDERING LOGIC ------------------ //
@@ -820,13 +481,13 @@ function renderPools() {
   if (pools.length === 0) {
     grid.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; background: var(--card-bg); border-radius: var(--radius-lg); border: 1px dashed var(--border);">
-        <div style="font-size: 42px; margin-bottom: 12px;">🍔</div>
+        <div style="font-size: 42px; margin-bottom: 12px;">🛒</div>
         <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px;">No Active Order Pools Right Now</h3>
         <p style="color: var(--text-muted); font-size: 13px; max-width: 400px; margin: 0 auto 16px;">
-          Want to order food or snacks? Start a group order, hit the ₹200 free delivery threshold, and save ₹40!
+          Want to order snacks or food under ₹200? Start a group order, hit the free delivery threshold, and save ₹40!
         </p>
         <button class="btn-primary" onclick="handleHostPoolClick()" style="margin: 0 auto;">
-          <span>＋</span> Host a BulkBite Pool Now
+          <span>＋</span> Host a Group Order Now
         </button>
       </div>
     `;
@@ -886,10 +547,6 @@ function renderPoolCard(pool) {
       </div>
 
       <h3 class="pool-title">${escapeHtml(pool.title)}</h3>
-
-      <div style="font-size: 11px; font-weight: 700; color: var(--primary); margin-top: -4px; margin-bottom: 8px;">
-        🏫 ${escapeHtml(pool.college_name || 'Campus Community')}
-      </div>
 
       <div class="host-row">
         <div class="host-avatar" style="background-color: ${pool.host_avatar || '#4F46E5'}">
@@ -975,7 +632,9 @@ async function refreshActivePoolDetail(poolId) {
     const pool = await apiFetch(`/api/pools/${poolId}`);
     state.currentPoolDetail = pool;
     renderPoolDetailModal(pool);
-  } catch (e) {}
+  } catch (e) {
+    // silence background poll error
+  }
 }
 
 function renderPoolDetailModal(pool) {
@@ -983,7 +642,6 @@ function renderPoolDetailModal(pool) {
   if (!container) return;
 
   const isHost = state.currentUser && state.currentUser.id === pool.host_id;
-  const isFounder = state.currentUser && state.currentUser.role === 'founder';
 
   const steps = [
     { key: 'open', label: '1. Pooling Open' },
@@ -1034,13 +692,13 @@ function renderPoolDetailModal(pool) {
     `;
   }
 
-  // Host Action Control Toolbar
+  // Host Action Control Toolbar (Strictly for the order host)
   let hostToolbarHtml = '';
-  if (isHost || isFounder) {
+  if (isHost) {
     hostToolbarHtml = `
       <div style="background: var(--bg); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 18px;">
         <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--primary); margin-bottom: 8px;">
-          ${isFounder && !isHost ? '👑 Founder Management Override' : '👑 Host Management Controls'}
+          👑 Host Management Controls (You are the Order Host)
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
           ${pool.status === 'open' ? `
@@ -1066,11 +724,6 @@ function renderPoolDetailModal(pool) {
           <button class="btn-secondary" onclick="openBroadcastModal(${pool.id})" style="font-size:12px;">
             📢 Send Announcement
           </button>
-          ${isFounder ? `
-            <button class="btn-secondary" onclick="deletePoolByFounder(${pool.id})" style="font-size:12px; color:var(--danger); margin-left:auto;">
-              🗑️ Cancel/Delete Pool
-            </button>
-          ` : ''}
         </div>
       </div>
     `;
@@ -1081,7 +734,7 @@ function renderPoolDetailModal(pool) {
   if (pool.items && pool.items.length > 0) {
     itemsHtml = pool.items.map(item => {
       const isOwner = state.currentUser && state.currentUser.id === item.user_id;
-      const canDelete = (pool.status === 'open' && (isOwner || isHost)) || isFounder;
+      const canDelete = pool.status === 'open' && (isOwner || isHost);
       const subtotal = item.price * item.quantity;
 
       return `
@@ -1129,6 +782,7 @@ function renderPoolDetailModal(pool) {
       const isPaid = p.payment_status === 'paid';
       const isSelf = state.currentUser && state.currentUser.id === p.user_id;
       const hostUpi = pool.host_upi || 'hostel@upi';
+      const upiUrl = `upi://pay?pa=${encodeURIComponent(hostUpi)}&pn=${encodeURIComponent(pool.host_name)}&am=${p.total_amount}&cu=INR&tn=${encodeURIComponent('Hostel Pool ' + pool.platform)}`;
       const whatsappMsg = `Hey ${p.name.split(' ')[0]}, your order from ${pool.platform} is arriving at ${pool.gate_location}. Your total is ₹${p.total_amount}. Please UPI to ${hostUpi}`;
       const whatsappUrl = `https://wa.me/91${p.phone}?text=${encodeURIComponent(whatsappMsg)}`;
 
@@ -1161,7 +815,7 @@ function renderPoolDetailModal(pool) {
             <a href="${whatsappUrl}" target="_blank" class="btn-secondary" style="padding:5px 10px; font-size:11px; text-decoration:none;">
               💬 Ping WhatsApp
             </a>
-            ${(isHost || isFounder) && !p.is_host ? `
+            ${isHost && !p.is_host ? `
               <button onclick="togglePaymentStatus(${pool.id}, ${p.user_id}, '${isPaid ? 'pending' : 'paid'}', ${p.total_amount})" class="btn-secondary" style="padding:5px 10px; font-size:11px; margin-left:auto;">
                 ${isPaid ? 'Mark as Unpaid' : 'Mark as Paid ✓'}
               </button>
@@ -1214,7 +868,7 @@ function renderPoolDetailModal(pool) {
   `;
 }
 
-// ------------------ HOST & FOUNDER ACTIONS ------------------ //
+// ------------------ HOST ACTIONS ------------------ //
 
 async function updatePoolStatus(poolId, newStatus) {
   try {
@@ -1261,7 +915,7 @@ async function togglePaymentStatus(poolId, userId, newStatus, amount) {
 }
 
 function openBroadcastModal(poolId) {
-  const msg = prompt("Enter announcement message to broadcast to all students in this pool:", "Delivery guy has reached the gate! Meet me now.");
+  const msg = prompt("Enter announcement message to broadcast to all students in this pool:", "Delivery guy has reached the gate in blue t-shirt! Meet me now.");
   if (!msg) return;
 
   apiFetch(`/api/pools/${poolId}/broadcast`, {
@@ -1272,19 +926,6 @@ function openBroadcastModal(poolId) {
   }).catch(e => {
     showToast("Error", e.message, "gate");
   });
-}
-
-async function deletePoolByFounder(poolId) {
-  if (!confirm("Founder action: Are you sure you want to cancel and remove this entire pool?")) return;
-  try {
-    await apiFetch(`/api/pools/${poolId}`, { method: 'DELETE' });
-    closeModal('poolDetailModal');
-    showToast("Pool Removed", "Order pool removed by founder", "info");
-    await loadPools();
-    await loadStats();
-  } catch (e) {
-    showToast("Error", e.message, "gate");
-  }
 }
 
 // ------------------ ADD ITEM MODAL ------------------ //
@@ -1377,10 +1018,6 @@ function openCreatePoolModal() {
   const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   document.getElementById('poolTimeInput').value = timeStr;
 
-  if (state.currentUser && state.currentUser.college_id) {
-    document.getElementById('poolCollegeSelect').value = state.currentUser.college_id;
-  }
-
   modal.classList.add('active');
 }
 
@@ -1399,7 +1036,6 @@ async function handleCreatePoolSubmit(e) {
     return;
   }
 
-  const collegeId = document.getElementById('poolCollegeSelect').value;
   const platform = document.getElementById('poolPlatformSelect').value;
   const title = document.getElementById('poolTitleInput').value.trim();
   const targetAmount = parseFloat(document.getElementById('poolTargetInput').value) || 200.0;
@@ -1412,7 +1048,6 @@ async function handleCreatePoolSubmit(e) {
   const initialQty = parseInt(document.getElementById('hostItemQtyInput').value) || 1;
 
   const payload = {
-    college_id: collegeId,
     title,
     platform,
     target_amount: targetAmount,
@@ -1434,7 +1069,7 @@ async function handleCreatePoolSubmit(e) {
     });
 
     closeModal('createPoolModal');
-    showToast("Order Pool Live!", `Ordering at ${orderTime}. Campus students can now join!`, "goal");
+    showToast("Order Pool Live!", `Ordering at ${orderTime}. Other students can now join!`, "goal");
     await loadPools();
     await loadStats();
     if (res.id) openPoolDetail(res.id);
@@ -1447,7 +1082,7 @@ async function handleCreatePoolSubmit(e) {
 
 function openUPIQRModal(hostName, upiId, amount) {
   const modal = document.getElementById('upiQRModal');
-  const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(hostName)}&am=${amount}&cu=INR&tn=${encodeURIComponent('BulkBite Pool Payment')}`;
+  const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(hostName)}&am=${amount}&cu=INR&tn=${encodeURIComponent('Hostel Pool Payment')}`;
 
   document.getElementById('qrHostName').textContent = hostName;
   document.getElementById('qrUpiId').textContent = upiId;
@@ -1460,38 +1095,6 @@ function openUPIQRModal(hostName, upiId, amount) {
   }
 
   modal.classList.add('active');
-}
-
-// ------------------ PWA MOBILE INSTALL ------------------ //
-
-function setupPWA() {
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    state.deferredPrompt = e;
-    const banner = document.getElementById('pwaInstallBanner');
-    if (banner) banner.style.display = 'flex';
-  });
-
-  // If already running in standalone PWA mode, hide banner
-  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-    const banner = document.getElementById('pwaInstallBanner');
-    if (banner) banner.style.display = 'none';
-  }
-}
-
-function triggerPWAInstall() {
-  if (state.deferredPrompt) {
-    state.deferredPrompt.prompt();
-    state.deferredPrompt.userChoice.then((choiceResult) => {
-      if (choiceResult.outcome === 'accepted') {
-        showToast("App Installing!", "BulkBite is being added to your home screen!", "goal");
-      }
-      state.deferredPrompt = null;
-    });
-  } else {
-    // Provide clean iOS / mobile browser instructions
-    alert("📲 To Install BulkBite on your phone:\n\n• On iPhone (Safari): Tap the Share button at bottom ➔ tap 'Add to Home Screen'.\n• On Android (Chrome): Tap the three dots (⋮) in top right ➔ tap 'Install app' or 'Add to Home screen'.");
-  }
 }
 
 // ------------------ UI HELPERS & EVENT LISTENERS ------------------ //
@@ -1537,7 +1140,7 @@ function renderNotificationList() {
   list.innerHTML = state.notifications.slice(0, 10).map(n => `
     <div class="dropdown-item" style="flex-direction:column; align-items:flex-start; border-bottom:1px solid var(--border); padding:10px 14px;">
       <div style="font-weight:700; font-size:12px; color:var(--text-main); display:flex; align-items:center; gap:6px;">
-        ${n.type === 'gate_alert' ? '🚨' : (n.type === 'admin_broadcast' ? '📢' : '🔔')} ${escapeHtml(n.title)}
+        ${n.type === 'gate_alert' ? '🚨' : '🔔'} ${escapeHtml(n.title)}
       </div>
       <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
         ${escapeHtml(n.message)}

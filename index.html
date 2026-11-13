@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>BulkBite • Zero Delivery Fee Group Ordering</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍔</text></svg>" />
+</head>
+<body data-theme="light">
+
+  <!-- Main Sticky App Header -->
+  <header class="app-header">
+    <div class="container header-content">
+      <div class="logo-area" onclick="location.reload()">
+        <div class="logo-icon">🍔</div>
+        <div>
+          <div class="logo-title">BulkBite</div>
+          <div class="founder-tag">Founder: KEDAR PATIL</div>
+          <div class="logo-tagline">Pool orders • Hit ₹200 • ₹0 Delivery Fee</div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Audio Notification Chime Toggle -->
+        <button id="soundToggleBtn" class="icon-btn" title="Toggle Sound Chimes">🔊</button>
+
+        <!-- Dark/Light Mode Toggle -->
+        <button id="themeToggleBtn" class="icon-btn" title="Toggle Dark/Light Mode">🌙</button>
+
+        <!-- Notifications Bell -->
+        <div style="position: relative;">
+          <button id="notifBtn" class="icon-btn" title="Hostel Notifications">
+            🔔
+            <span id="notifCountBadge" class="notif-badge" style="display:none;">0</span>
+          </button>
+          <div id="notifDropdownList" class="dropdown-menu" style="width: 320px; right: 0;"></div>
+        </div>
+
+        <!-- Student Account Area (One student, one account) -->
+        <div id="authSection" style="position: relative;">
+          <!-- Logged Out State -->
+          <div id="loggedOutButtons" style="display: flex; gap: 8px;">
+            <button class="btn-secondary" onclick="openLoginModal()" style="padding: 7px 12px; font-size: 13px;">
+              🔑 Log In
+            </button>
+            <button class="btn-primary" onclick="openRegisterModal()" style="padding: 7px 14px; font-size: 13px;">
+              ＋ Sign Up
+            </button>
+          </div>
+
+          <!-- Logged In State (Personal Account Pill) -->
+          <div id="loggedInAccount" style="display: none;">
+            <button id="accountMenuBtn" class="user-switcher-btn" title="My Student Account">
+              <div id="userAvatarBadge" class="user-avatar-small">R</div>
+              <span id="userNameHeader">Rahul</span>
+              <span id="userRoomBadge" class="room-badge">Room 304</span>
+              <span style="font-size:10px; margin-left:2px; opacity:0.6;">▼</span>
+            </button>
+
+            <!-- Personal Account Dropdown -->
+            <div id="accountDropdownMenu" class="dropdown-menu" style="width: 250px;">
+              <div style="padding: 10px 14px 6px; border-bottom: 1px solid var(--border);">
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Logged In Account</div>
+                <div id="menuFullName" style="font-weight: 800; font-size: 14px; margin-top: 2px;">Rahul Sharma</div>
+                <div id="menuRoomInfo" style="font-size: 12px; color: var(--text-muted);">Room 304 • Hostel 3</div>
+                <div id="menuPhoneInfo" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">📞 9876543210</div>
+              </div>
+              <div class="dropdown-item" onclick="openProfileModal()">
+                <span>👤</span> My Profile & UPI Details
+              </div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" onclick="handleLogout()" style="color: var(--danger); font-weight: 700;">
+                <span>🚪</span> Log Out
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Hero Banner with Community Savings -->
+    <section class="hero-banner">
+      <div class="hero-text">
+        <span class="savings-highlight">⚡ Free Delivery Hack for Hostels</span>
+        <h1>Stop paying ₹40 delivery on a ₹30 craving!</h1>
+        <p>
+          Need an ice cream, cold drink, or Maggi? Start an order pool, let roomies add their items to hit the ₹200 free delivery threshold, and meet at the gate when it arrives!
+        </p>
+      </div>
+
+      <div class="hero-metrics">
+        <div class="metric-card">
+          <div id="statDeliverySaved" class="metric-number">₹320</div>
+          <div class="metric-label">Delivery Saved</div>
+        </div>
+        <div class="metric-card">
+          <div id="statActivePools" class="metric-number">3</div>
+          <div class="metric-label">Active Carts</div>
+        </div>
+        <div class="metric-card">
+          <div id="statStudents" class="metric-number">6</div>
+          <div class="metric-label">Hostelers</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actions & Filter Bar -->
+    <section class="actions-bar">
+      <div class="filters-group">
+        <div class="filter-chip active" data-status="all">All Carts</div>
+        <div class="filter-chip" data-status="open">🟢 Open to Join</div>
+        <div class="filter-chip" data-status="ordering">⏳ Ordering</div>
+        <div class="filter-chip" data-status="on_the_way">🚴 On The Way</div>
+        <div class="filter-chip" data-status="at_gate">🚨 At Gate!</div>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: center; flex: 1; justify-content: flex-end; min-width: 280px;">
+        <input 
+          type="text" 
+          id="poolSearchInput" 
+          class="form-input" 
+          placeholder="🔍 Search items, room, student..." 
+          style="max-width: 240px; padding: 8px 12px; font-size: 13px;"
+        />
+        <button class="btn-primary" onclick="handleHostPoolClick()">
+          <span>＋</span> Host a Cart Pool
+        </button>
+      </div>
+    </section>
+
+    <!-- Platform Filter Pills -->
+    <div style="display: flex; gap: 8px; margin-top: 14px; overflow-x: auto; padding-bottom: 4px;">
+      <button class="filter-chip active" data-platform="all">All Apps</button>
+      <button class="filter-chip" data-platform="Blinkit">⚡ Blinkit (10m)</button>
+      <button class="filter-chip" data-platform="Zepto">⏱️ Zepto (10m)</button>
+      <button class="filter-chip" data-platform="Instamart">🛵 Swiggy Instamart</button>
+      <button class="filter-chip" data-platform="Zomato">🍔 Zomato / Food</button>
+    </div>
+
+    <!-- Active Pools Grid -->
+    <section id="poolGrid" class="pool-grid">
+      <!-- Populated dynamically by app.js -->
+    </section>
+
+    <!-- App Branding Footer -->
+    <footer style="margin-top: 50px; padding: 24px 0 10px; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 13px;">
+      <div style="font-weight: 800; font-size: 15px; color: var(--text-main); margin-bottom: 2px;">
+        🍔 BulkBite
+      </div>
+      <div style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+        Founder: KEDAR PATIL
+      </div>
+      <div style="font-size: 11px; opacity: 0.8;">
+        Zero delivery fee group ordering for hostel students • Blinkit • Zepto • Instamart • Zomato
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. LOGIN MODAL -->
+  <div id="loginModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Student Login</h3>
+        <button class="close-btn" onclick="closeModal('loginModal')">✕</button>
+      </div>
+      <form id="loginForm">
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            Log into your personal hostel account to host group carts and add items.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input type="tel" id="loginPhoneInput" class="form-input" placeholder="e.g. 9876543210" pattern="[0-9]{10}" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <input type="password" id="loginPasswordInput" class="form-input" placeholder="Your account password" required />
+          </div>
+
+          <!-- Quick Fill for Demo Testing -->
+          <div style="background: var(--bg); padding: 10px 12px; border-radius: var(--radius-md); border: 1px dashed var(--border); margin-top: 12px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
+              DEMO HOSTEL STUDENTS (Password: <code style="color:var(--primary);">hostel123</code>)
+            </div>
+            <div class="preset-chips">
+              <span class="preset-chip" onclick="quickFillLogin('9876543210', 'hostel123')">Rahul (Rm 304)</span>
+              <span class="preset-chip" onclick="quickFillLogin('9811223344', 'hostel123')">Aman (Rm 210)</span>
+              <span class="preset-chip" onclick="quickFillLogin('9822334455', 'hostel123')">Priya (Rm 102)</span>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-muted);">
+            Don't have an account? <a href="javascript:void(0)" onclick="switchToRegister()" style="color: var(--primary); font-weight: 700; text-decoration: underline;">Sign Up</a>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('loginModal')">Cancel</button>
+          <button type="submit" class="btn-primary">Log In 🔑</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. SIGN UP / REGISTER MODAL -->
+  <div id="registerModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Create Student Account</h3>
+        <button class="close-btn" onclick="closeModal('registerModal')">✕</button>
+      </div>
+      <form id="registerForm">
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+            One account per student. Your room number and phone will be linked to your orders.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="regNameInput" class="form-input" placeholder="e.g. Siddharth Rao" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Room Number *</label>
+              <input type="text" id="regRoomInput" class="form-input" placeholder="e.g. Room 314" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hostel / Block *</label>
+              <select id="regHostelInput" class="form-select" required>
+                <option value="Hostel 3 (Boys)">Hostel 3 (Boys)</option>
+                <option value="Hostel 4 (Boys)">Hostel 4 (Boys)</option>
+                <option value="Hostel 1 (Girls)">Hostel 1 (Girls)</option>
+                <option value="Hostel 2 (Girls)">Hostel 2 (Girls)</option>
+                <option value="Block A">Block A</option>
+                <option value="Block B">Block B</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Phone / WhatsApp *</label>
+              <input type="tel" id="regPhoneInput" class="form-input" placeholder="10-digit mobile" pattern="[0-9]{10}" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Set Password *</label>
+              <input type="password" id="regPasswordInput" class="form-input" placeholder="Min 4 characters" minlength="4" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Your UPI ID (For collecting payment when you host)</label>
+            <input type="text" id="regUpiInput" class="form-input" placeholder="e.g. name@oksbi / name@paytm" />
+            <div class="form-helper">Other students will pay to this UPI ID when you host carts</div>
+          </div>
+
+          <div style="text-align: center; margin-top: 14px; font-size: 13px; color: var(--text-muted);">
+            Already have an account? <a href="javascript:void(0)" onclick="switchToLogin()" style="color: var(--primary); font-weight: 700; text-decoration: underline;">Log In</a>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('registerModal')">Cancel</button>
+          <button type="submit" class="btn-primary">Create My Account & Login 🚀</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. MY PROFILE MODAL -->
+  <div id="profileModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 class="modal-title">My Student Profile</h3>
+        <button class="close-btn" onclick="closeModal('profileModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align: center; margin-bottom: 18px;">
+          <div id="profileAvatarBig" class="user-avatar-small" style="width: 56px; height: 56px; font-size: 24px; margin: 0 auto 10px;">R</div>
+          <h3 id="profileNameBig" style="font-size: 18px; font-weight: 800;">Rahul Sharma</h3>
+          <div id="profileRoomBig" class="room-badge" style="display: inline-block; margin-top: 4px;">Room 304</div>
+        </div>
+
+        <div style="background: var(--bg); border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Hostel Block:</span>
+            <strong id="profileBlock">Hostel 3 (Boys)</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Contact Phone:</span>
+            <strong id="profilePhone">9876543210</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">My UPI ID:</span>
+            <strong id="profileUpi" style="font-family: monospace; color: var(--primary);">rahul304@oksbi</strong>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('profileModal')">Close</button>
+        <button type="button" class="btn-primary" onclick="handleLogout()" style="background: var(--danger);">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. HOST AN ORDER POOL MODAL -->
+  <div id="createPoolModal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Host a Group Order Pool</h3>
+        <button class="close-btn" onclick="closeModal('createPoolModal')">✕</button>
+      </div>
+      <form id="createPoolForm">
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            Start a cart pool for your hostel. Once other students add items and cart reaches the free delivery limit, you place the order and meet at the gate!
+          </p>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Ordering Platform *</label>
+              <select id="poolPlatformSelect" class="form-select" required>
+                <option value="Blinkit" selected>⚡ Blinkit (10-min grocery)</option>
+                <option value="Zepto">⏱️ Zepto (10-min grocery)</option>
+                <option value="Instamart">🛵 Swiggy Instamart</option>
+                <option value="Zomato">🍔 Zomato (Late Night Food)</option>
+                <option value="Swiggy">🍕 Swiggy Food</option>
+                <option value="Local Canteen">☕ Hostel Canteen / Night Mess</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Free Delivery Target (₹) *</label>
+              <input type="number" id="poolTargetInput" class="form-input" value="200" min="50" step="10" required />
+              <div class="form-helper">Blinkit/Zepto free delivery is usually ₹199-₹200</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Pool Title / Craving *</label>
+            <input type="text" id="poolTitleInput" class="form-input" placeholder="e.g. Midnight Maggi & Cold Drinks Cravings 🍜" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Ordering Deadline *</label>
+              <input type="text" id="poolTimeInput" class="form-input" placeholder="e.g. 11:30 PM" required />
+              <div class="preset-chips">
+                <span class="preset-chip" onclick="setOrderTimeOffset(15)">+15 min</span>
+                <span class="preset-chip" onclick="setOrderTimeOffset(30)">+30 min</span>
+                <span class="preset-chip" onclick="setOrderTimeOffset(45)">+45 min</span>
+                <span class="preset-chip" onclick="setOrderTimeOffset(60)">+1 hr</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Pickup Gate Spot *</label>
+              <input type="text" id="poolGateInput" class="form-input" value="Main Hostel Gate (Near Guard Room)" required />
+              <div class="preset-chips">
+                <span class="preset-chip" onclick="document.getElementById('poolGateInput').value='Main Hostel Gate'">Main Gate</span>
+                <span class="preset-chip" onclick="document.getElementById('poolGateInput').value='Gate 2 (Near Nescafe)'">Gate 2 Nescafe</span>
+                <span class="preset-chip" onclick="document.getElementById('poolGateInput').value='Hostel Block Lobby'">Block Lobby</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Initial Host Item to kickstart cart -->
+          <div style="background: var(--bg); padding: 14px; border-radius: var(--radius-md); border: 1px dashed var(--border); margin-top: 10px;">
+            <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">
+              🛒 Your Initial Item (What are you ordering?)
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom: 8px;">
+                <input type="text" id="hostItemNameInput" class="form-input" placeholder="Item name (e.g. Sting 250ml)" />
+              </div>
+              <div class="form-row" style="margin-bottom: 8px;">
+                <input type="number" id="hostItemPriceInput" class="form-input" placeholder="Price (₹)" min="1" />
+                <input type="number" id="hostItemQtyInput" class="form-input" value="1" min="1" placeholder="Qty" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 14px;">
+            <label class="form-label">Host Instructions / Notes (Optional)</label>
+            <textarea id="poolNotesInput" class="form-textarea" rows="2" placeholder="e.g. Please be at the gate on time with UPI ready!"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('createPoolModal')">Cancel</button>
+          <button type="submit" class="btn-primary">Launch Cart Pool 🚀</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. ADD ITEM TO POOL MODAL -->
+  <div id="addItemModal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="addItemPoolTitle">Add Item to Cart</h3>
+        <button class="close-btn" onclick="closeModal('addItemModal')">✕</button>
+      </div>
+      <form id="itemForm">
+        <div class="modal-body">
+          <div style="margin-bottom: 14px;">
+            <label class="form-label">Quick Hostel Snack Presets</label>
+            <div class="preset-chips">
+              <span class="preset-chip" onclick="selectPresetItem('Maggi 2-Minute Noodles', 14)">🍜 Maggi ₹14</span>
+              <span class="preset-chip" onclick="selectPresetItem('Sting Energy Drink 250ml', 20)">⚡ Sting ₹20</span>
+              <span class="preset-chip" onclick="selectPresetItem('Lay\'s Magic Masala (Blue)', 20)">🥔 Lay's ₹20</span>
+              <span class="preset-chip" onclick="selectPresetItem('Amul Kool Cold Coffee', 35)">☕ Cold Coffee ₹35</span>
+              <span class="preset-chip" onclick="selectPresetItem('Dairy Milk Silk 58g', 80)">🍫 Silk ₹80</span>
+              <span class="preset-chip" onclick="selectPresetItem('Bisleri Mineral Water 1L', 20)">💧 Water 1L ₹20</span>
+              <span class="preset-chip" onclick="selectPresetItem('Hide & Seek Biscuits', 30)">🍪 Biscuits ₹30</span>
+              <span class="preset-chip" onclick="selectPresetItem('Red Bull 250ml', 125)">🥤 Red Bull ₹125</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Product Name *</label>
+            <input type="text" id="itemNameInput" class="form-input" placeholder="e.g. Kurkure Solid Masti / Red Bull / Bread" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Estimated Price (₹) *</label>
+              <input type="number" id="itemPriceInput" class="form-input" placeholder="e.g. 40" min="1" step="0.5" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Quantity *</label>
+              <input type="number" id="itemQtyInput" class="form-input" value="1" min="1" max="20" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Product Link (Optional)</label>
+            <input type="url" id="itemLinkInput" class="form-input" placeholder="Paste link from Blinkit / Zepto / Swiggy app" />
+            <div class="form-helper">Helps the host pick the exact product on the app</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Product Image URL (Optional)</label>
+            <input type="url" id="itemImageInput" class="form-input" placeholder="https://... image link" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Special Preferences / Instructions</label>
+            <input type="text" id="itemNotesInput" class="form-input" placeholder="e.g. Chilled only, Green packet, Buy 1 Get 1 if available" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('addItemModal')">Cancel</button>
+          <button type="submit" class="btn-primary">Add to Cart Pool 🛒</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. POOL DETAIL & GATE MEETUP MODAL -->
+  <div id="poolDetailModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Pool Details & Gate Meetup</h3>
+        <button class="close-btn" onclick="closeModal('poolDetailModal')">✕</button>
+      </div>
+      <div class="modal-body" id="poolDetailBody">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('poolDetailModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. UPI QR PAYMENT MODAL -->
+  <div id="upiQRModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Pay via UPI QR</h3>
+        <button class="close-btn" onclick="closeModal('upiQRModal')">✕</button>
+      </div>
+      <div class="modal-body qr-container">
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">
+          Paying Order Host: <strong id="qrHostName" style="color:var(--text-main);">Rahul</strong>
+        </div>
+        <div class="upi-id-pill" id="qrUpiId">rahul304@oksbi</div>
+
+        <div class="qr-box" id="qrCodeContainer">
+          <!-- Offline SVG QR Code rendered here -->
+        </div>
+
+        <div style="font-size: 26px; font-weight: 800; color: var(--primary); margin-bottom: 12px;" id="qrAmount">
+          ₹40
+        </div>
+
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+          Scan with Google Pay, PhonePe, Paytm, or BHIM app to settle your share!
+        </p>
+
+        <a id="qrDirectPayBtn" href="#" class="btn-primary" style="width: 100%; justify-content: center; text-decoration: none;">
+          ⚡ Open in UPI App (GPay / PhonePe)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications Area -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Main App Script -->
+  <script src="/app.js"></script>
+</body>
+</html>
